@@ -14,19 +14,23 @@ project(battleship_networking
 add_library(${PROJECT_NAME}
     src/server.cpp
 )
-# [[EDIT THIS FOR YOUR CASE]]
-# Specify include directory of Asio
-set(PATH_TO_ASIO "C://Users//yoish//git//cpp//sdks//asio-1.28.0//include")
+if (NOT DEFINED ASIO_INCLUDE_DIR)
+    message(FATAL_ERROR "Variable <ASIO_INCLUDE_DIR> is not defined. Please\
+            define it by passing it as a CLI argument when running CMake.\
+            Ex: -DASIO_INCLUDE_DIR:PATH=/path/to/asio/include/")
+endif()
 target_include_directories(${PROJECT_NAME}
     PUBLIC
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    ${PATH_TO_ASIO}
+    ${ASIO_INCLUDE_DIR}
 )
 
 
 
 # Set using Asio without Boost
 add_definitions(-DASIO_STANDALONE)
-# Set minimum Windows version for Windows SDK
-add_definitions(-D_WIN32_WINNT=0x0A00) # 0x0A00 = Win10
+if (WIN32)
+    # Set minimum Windows version for Windows SDK
+    add_definitions(-D_WIN32_WINNT=0x0A00) # 0x0A00 = Win10
+endif()

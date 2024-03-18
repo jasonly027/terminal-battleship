@@ -29,5 +29,7 @@ target_link_libraries(${PROJECT_NAME}
 
 # Set using Asio without Boost
 add_definitions(-DASIO_STANDALONE)
-# Set minimum Windows version for Windows SDK
-add_definitions(-D_WIN32_WINNT=0x0A00) # 0x0A00 = Win10
+if (WIN32)
+    # Set minimum Windows version for Windows SDK
+    add_definitions(-D_WIN32_WINNT=0x0A00) # 0x0A00 = Win10
+endif()
