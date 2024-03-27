@@ -14,7 +14,7 @@ add_subdirectory(external/networking)
 
 
 add_executable(${PROJECT_NAME}
-    src/main.cpp
+    src/client.cpp
 )
 target_include_directories(${PROJECT_NAME}
     PRIVATE
@@ -22,6 +22,18 @@ target_include_directories(${PROJECT_NAME}
     battleship_networking
 )
 target_link_libraries(${PROJECT_NAME}
+    battleship_networking
+)
+
+add_executable(Server
+    src/server.cpp
+)
+target_include_directories(Server
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    battleship_networking
+)
+target_link_libraries(Server
     battleship_networking
 )
 

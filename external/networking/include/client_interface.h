@@ -1,14 +1,15 @@
 #ifndef BATTLESHIP_CLIENT_H
 #define BATTLESHIP_CLIENT_H
-#include <exception>
-#include <iostream>
 #pragma once
 
 #include "asio/io_context.hpp"
 #include "asio/ip/tcp.hpp"
 #include "message.h"
 #include "tsqueue.h"
+#include <asio.hpp>
 #include <cstdint>
+#include <exception>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
@@ -22,12 +23,15 @@ public:
 
     bool connect(const std::string &host, const uint16_t port) {
         try {
-            connection_ = std::make_unique < connection<T>();
             asio::ip::tcp::resolver resolver(ctx_);
-            endpoints_ = resolver.resolve(host, std::to_string(port));
-            connection_->connect_to_server(endpoints_);
+            asio::ip::tcp::resolver::results_type endpoints =
+                resolver.resolve(host, std::to_string(port));
 
-            thread_ctx_ = std::thread([this]() { ctx_.run(); })
+            connection_ = std::make_unique<connection<T>>(connection<T>::owner::client, ctx_, asio::ip::tcp::socket(ctx_), messages_in_);
+
+            connection_->connect_to_server(endpoints);
+
+            thread_ctx_ = std::thread([this]() { ctx_.run(); });
         } catch (std::exception &e) {
             std::cerr << "Client Exception: " << e.what() << '\n';
             return false;
@@ -48,9 +52,14 @@ public:
 
     bool connected() {
         if (connection_)
-            connection_->connected();
+            return connection_->connected();
         else
             return false;
+    }
+
+    void send(const message<T> &msg) {
+        if (connected())
+            connection_->send(msg);
     }
 
     tsqueue<owned_message<T>> &incoming() { return messages_in_; }
