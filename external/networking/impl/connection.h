@@ -2,15 +2,9 @@
 #define BATTLESHIP_CONNECTION_H
 #pragma once
 
-#include "asio/buffer.hpp"
-#include "asio/connect.hpp"
-#include "asio/io_context.hpp"
-#include "asio/ip/tcp.hpp"
-#include "asio/post.hpp"
-#include "asio/read.hpp"
-#include "asio/write.hpp"
 #include "message.h"
 #include "tsqueue.h"
+#include <asio.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -53,8 +47,9 @@ public:
             asio::async_connect(
                 socket_, endpoints,
                 [this](std::error_code ec, asio::ip::tcp::endpoint endpoint) {
-                    if (!ec)
+                    if (!ec) {
                         read_header();
+                    }
                 });
         }
     }
@@ -90,7 +85,6 @@ private:
                         add_to_incoming_message_queue();
                     }
                 } else {
-                    // TODO: bytes
                     std::cout << "[" << id_ << "] Read Header Fail\n";
                     std::cout << "Bytes expected: " << sizeof(message_header<T>) << " Got: " << msg_temporary_in_.header.size << '\n';
                     std::cout << ec.message() << '\n';
@@ -108,7 +102,8 @@ private:
                                  add_to_incoming_message_queue();
                              } else {
                                  std::cout << "[" << id_
-                                           << "] Read Body Fail\n";
+                                           << "] Read Body Fail\n"
+                                           << ec.message();
                                  socket_.close();
                              }
                          });
@@ -129,6 +124,11 @@ private:
                                           write_header();
                                       }
                                   }
+                              } else {
+                                  std::cout << "[" << id_
+                                            << "] Write Header Fail\n"
+                                            << ec.message();
+                                  socket_.close();
                               }
                           });
     }
@@ -143,11 +143,11 @@ private:
 
                                   if (!messages_out_.empty()) {
                                       write_header();
-                                  } else {
-                                      std::cout << "[" << id_
-                                                << "] Write Body Fail\n";
-                                      socket_.close();
                                   }
+                              } else {
+                                  std::cout << "[" << id_
+                                            << "] Write Body Fail\n";
+                                  socket_.close();
                               }
                           });
     }

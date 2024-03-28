@@ -9,7 +9,12 @@ project(battleship
     LANGUAGES CXX
 )
 
-add_subdirectory(external/networking)
+if (NOT DEFINED ASIO_INCLUDE_DIR)
+    message(FATAL_ERROR "Variable <ASIO_INCLUDE_DIR> is not defined. Please\
+            define it by passing it as a CLI argument when running CMake.\
+            Ex: -DASIO_INCLUDE_DIR:PATH=/path/to/asio/include/")
+endif()
+set(BATTLESHIP_NETWORKING_DIR "${CMAKE_SOURCE_DIR}/external/networking")
 
 
 
@@ -19,10 +24,8 @@ add_executable(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME}
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    battleship_networking
-)
-target_link_libraries(${PROJECT_NAME}
-    battleship_networking
+    ${ASIO_INCLUDE_DIR}
+    ${BATTLESHIP_NETWORKING_DIR}
 )
 
 add_executable(Server
@@ -31,17 +34,10 @@ add_executable(Server
 target_include_directories(Server
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    battleship_networking
-)
-target_link_libraries(Server
-    battleship_networking
+    ${ASIO_INCLUDE_DIR}
+    ${BATTLESHIP_NETWORKING_DIR}
 )
 
 
 
-# Set using Asio without Boost
-add_definitions(-DASIO_STANDALONE)
-if (WIN32)
-    # Set minimum Windows version for Windows SDK
-    add_definitions(-D_WIN32_WINNT=0x0A00) # 0x0A00 = Win10
-endif()
+add_subdirectory(olc)

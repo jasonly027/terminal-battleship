@@ -2,8 +2,6 @@
 #define BATTLESHIP_CLIENT_H
 #pragma once
 
-#include "asio/io_context.hpp"
-#include "asio/ip/tcp.hpp"
 #include "message.h"
 #include "tsqueue.h"
 #include <asio.hpp>
@@ -17,7 +15,7 @@
 namespace battleship {
 template <typename T> class client_interface {
 public:
-    client_interface() : socket_(ctx_) {}
+    client_interface() {}
 
     virtual ~client_interface() { disconnect(); }
 
@@ -27,7 +25,9 @@ public:
             asio::ip::tcp::resolver::results_type endpoints =
                 resolver.resolve(host, std::to_string(port));
 
-            connection_ = std::make_unique<connection<T>>(connection<T>::owner::client, ctx_, asio::ip::tcp::socket(ctx_), messages_in_);
+            connection_ = std::make_unique<connection<T>>(
+                connection<T>::owner::client, ctx_, asio::ip::tcp::socket(ctx_),
+                messages_in_);
 
             connection_->connect_to_server(endpoints);
 
@@ -58,8 +58,9 @@ public:
     }
 
     void send(const message<T> &msg) {
-        if (connected())
+        if (connected()) {
             connection_->send(msg);
+        }
     }
 
     tsqueue<owned_message<T>> &incoming() { return messages_in_; }
@@ -67,7 +68,6 @@ public:
 protected:
     asio::io_context ctx_;
     std::thread thread_ctx_;
-    asio::ip::tcp::socket socket_;
     std::unique_ptr<connection<T>> connection_;
 
 private:

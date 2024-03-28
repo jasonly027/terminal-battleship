@@ -1,10 +1,10 @@
 #ifndef BATTLESHIP_MESSAGE_H
 #define BATTLESHIP_MESSAGE_H
-#include <iostream>
 #pragma once
 
 #include "connection.h"
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -18,8 +18,14 @@ template <typename T> struct message {
     message_header<T> header{};
     std::vector<uint8_t> body;
 
-    // Return size of message packet in bytes
-    size_t size() const { return sizeof(message_header<T>) + body.size(); }
+    // Return size of payload in bytes
+    size_t size() const { return body.size(); }
+
+    friend std::ostream &operator<<(std::ostream &os, const message<T> &msg) {
+        os << "ID:" << int(msg.header.id) << " Size:" << msg.header.size
+           << '\n';
+        return os;
+    }
 
     template <typename DataType>
     friend message<T> &operator<<(message<T> &msg, const DataType &data) {

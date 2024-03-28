@@ -1,20 +1,18 @@
 #ifndef BATTLESHIP_SERVER_H
 #define BATTLESHIP_SERVER_H
-#include "asio/ip/tcp.hpp"
-#include <cstddef>
-#include <deque>
-#include <exception>
-#include <iostream>
-#include <system_error>
-#include <xmemory>
 #pragma once
 
-#include "asio/io_context.hpp"
 #include "connection.h"
 #include "message.h"
 #include "tsqueue.h"
+#include <asio.hpp>
+#include <cstddef>
 #include <cstdint>
+#include <deque>
+#include <exception>
+#include <iostream>
 #include <memory>
+#include <system_error>
 #include <thread>
 
 namespace battleship {
@@ -92,7 +90,7 @@ public:
     }
 
     void message_all_client(
-        const message<T> &msg, std::shared_ptr<connection<T>> client,
+        const message<T> &msg,
         std::shared_ptr<connection<T>> p_ignore_client = nullptr) {
         bool invalid_client_exists = false;
 
@@ -113,7 +111,10 @@ public:
                 connections_.end());
     }
 
-    void update(size_t max_messages = -1) {
+    void update(size_t max_messages = -1, bool waiting = false) {
+        if (waiting)
+            message_in_.wait();
+
         size_t message_count = 0;
         while (message_count < max_messages && !message_in_.empty()) {
             auto msg = message_in_.pop_front();
@@ -129,9 +130,7 @@ protected:
         return false;
     }
 
-    virtual void on_client_disconnect(std::shared_ptr<connection<T>> client) {
-
-    }
+    virtual void on_client_disconnect(std::shared_ptr<connection<T>> client) {}
 
     virtual void on_message(std::shared_ptr<connection<T>> client,
                             message<T> &msg) {}

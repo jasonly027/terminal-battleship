@@ -30,12 +30,18 @@ public:
     void push_back(const T &item) {
         std::scoped_lock lock(muxQueue_);
         deqQueue_.emplace_back(std::move(item));
+
+        std::unique_lock<std::mutex> ul(muxBlocker);
+        blocker.notify_one();
     }
 
     // Prepend to front
     void push_front(const T &item) {
         std::scoped_lock lock(muxQueue_);
         deqQueue_.emplace_front(std::move(item));
+
+        std::unique_lock<std::mutex> ul(muxBlocker);
+        blocker.notify_one();
     }
 
     // Check if empty
@@ -60,6 +66,7 @@ public:
     T pop_back() {
         std::scoped_lock lock(muxQueue_);
         auto t = std::move(deqQueue_.back());
+        deqQueue_.pop_back();
         return t;
     }
 
@@ -67,12 +74,23 @@ public:
     T pop_front() {
         std::scoped_lock lock(muxQueue_);
         auto t = std::move(deqQueue_.front());
+        deqQueue_.pop_front();
         return t;
+    }
+
+    void wait() {
+        while (empty()) {
+            std::unique_lock<std::mutex> lock(muxBlocker);
+            blocker.wait(lock);
+        }
     }
 
 protected:
     std::mutex muxQueue_;
     std::deque<T> deqQueue_;
+
+    std::mutex muxBlocker;
+    std::condition_variable blocker;
 };
 } // namespace battleship
 

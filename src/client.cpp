@@ -1,8 +1,10 @@
-#include "client_interface.h"
-#include "message.h"
+#include "generic_net.h"
 #include <asio.hpp>
 #include <chrono>
+#include <cstdint>
 #include <iostream>
+#include <string>
+
 
 enum class CustomMsgTypes : uint32_t {
     ServerAccept,
@@ -18,36 +20,33 @@ public:
         battleship::message<CustomMsgTypes> msg;
         msg.header.id = CustomMsgTypes::ServerPing;
 
-        std::chrono::system_clock::time_point timeNow =
-            std::chrono::system_clock::now();
+        int num = 420;
+        msg << num;
+        std::cout << "About to ping\n";
+        send(msg);
+    }
 
-        msg << timeNow;
+    void MessageAll() {
+        battleship::message<CustomMsgTypes> msg;
+        msg.header.id = CustomMsgTypes::MessageAll;
         send(msg);
     }
 };
 
 int main() {
     CustomClient c;
-    c.connect("localhost", 49494);
+    c.connect("127.0.0.1", 49494);
 
-    bool key[3] = {false, false, false};
-    bool old_key[3] = {false, false, false};
-
-    bool bQuit = false;
-    while (!bQuit) {
-        if (GetForegroundWindow() == GetConsoleWindow()) {
-            key[0] = GetAsyncKeyState('1') & 0x8000;
-            key[1] = GetAsyncKeyState('2') & 0x8000;
-            key[2] = GetAsyncKeyState('3') & 0x8000;
-        }
-
-        if (key[0] && !old_key[0])
+    constexpr auto duration = std::chrono::seconds(2);
+    auto lastTime = std::chrono::steady_clock::now();
+    while (true) {
+        auto currentTime = std::chrono::steady_clock::now();
+        auto elapsedTime = currentTime - lastTime;
+        if (elapsedTime >= duration) {
+            lastTime = currentTime;
             c.PingServer();
-        if (key[2] && !old_key[2])
-            bQuit = true;
-
-        for (int i = 0; i < 3; i++)
-            old_key[i] = key[i];
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         if (c.connected()) {
             if (!c.incoming().empty()) {
@@ -55,23 +54,16 @@ int main() {
                 auto msg = c.incoming().pop_front().msg;
 
                 switch (msg.header.id) {
+                case CustomMsgTypes::ServerAccept: {
+                    // Server has responded to a ping request
+                    std::cout << "Server Accepted Connection\n";
+                } break;
                 case CustomMsgTypes::ServerPing: {
                     // Server has responded to a ping request
-                    std::chrono::system_clock::time_point timeNow =
-                        std::chrono::system_clock::now();
-                    std::chrono::system_clock::time_point timeThen;
-                    msg >> timeThen;
-                    std::cout
-                        << "Ping: "
-                        << std::chrono::duration<double>(timeNow - timeThen)
-                               .count()
-                        << "\n";
+                    std::cout << "Server pong\n";
                 } break;
                 }
             }
-        } else {
-            std::cout << "Server Down\n";
-            bQuit = true;
         }
     }
 
