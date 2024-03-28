@@ -7,6 +7,8 @@
 #include <mutex>
 #include <utility>
 
+// Thread-safe queue
+
 namespace battleship {
 template <typename T> class tsqueue {
 public:
@@ -78,6 +80,7 @@ public:
         return t;
     }
 
+    // Wait until push_back or push_front are called
     void wait() {
         while (empty()) {
             std::unique_lock<std::mutex> lock(muxBlocker);

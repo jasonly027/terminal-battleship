@@ -1,5 +1,5 @@
-#ifndef BATTLESHIP_SERVER_H
-#define BATTLESHIP_SERVER_H
+#ifndef BATTLESHIP_SERVER_INTERFACE_H
+#define BATTLESHIP_SERVER_INTERFACE_H
 #pragma once
 
 #include "connection.h"
@@ -23,6 +23,7 @@ public:
 
     virtual ~server_interface() { stop(); }
 
+    // [ASYNC] Start server
     bool start() {
         try {
             wait_for_client_connection();
@@ -36,6 +37,7 @@ public:
         return true;
     }
 
+    // [ASYNC] Stop client
     void stop() {
         ctx_.stop();
 
@@ -45,17 +47,21 @@ public:
         std::cout << "[SERVER] Stopped\n";
     }
 
+    // [ASYNC] Wait for a client to connect
     void wait_for_client_connection() {
         acceptor_.async_accept([this](std::error_code ec,
                                       asio::ip::tcp::socket socket) {
             if (!ec) {
                 std::cout << "[SERVER] New Connection: "
                           << socket.remote_endpoint() << '\n';
+
+                // Create connection
                 std::shared_ptr<connection<T>> new_conn =
                     std::make_shared<connection<T>>(
                         connection<T>::owner::server, ctx_, std::move(socket),
-                        message_in_);
+                        messages_in_);
 
+                // Possible validation point
                 if (on_client_connect(new_conn)) {
                     connections_.push_back(std::move(new_conn));
 
@@ -72,14 +78,18 @@ public:
                           << '\n';
             }
 
+            // Wait for next client to connect
             wait_for_client_connection();
         });
     }
 
+    // [ASYNC] Message a specific client
     void message_client(std::shared_ptr<connection<T>> client,
                         const message<T> &msg) {
         if (client && client->connected()) {
             client->send(msg);
+        // If client had disconnected, remove them from
+        // connections list
         } else {
             on_client_disconnect(client);
             client.reset();
@@ -89,6 +99,8 @@ public:
         }
     }
 
+    // [ASYNC] Message all clients, optionally, do not message
+    // one client
     void message_all_client(
         const message<T> &msg,
         std::shared_ptr<connection<T>> p_ignore_client = nullptr) {
@@ -98,6 +110,8 @@ public:
             if (client && client->connected()) {
                 if (client != p_ignore_client)
                     client->send(msg);
+            // If client had disconnected, mark them
+            // for removal from connections list
             } else {
                 on_client_disconnect(client);
                 client.reset();
@@ -105,19 +119,24 @@ public:
             }
         }
 
+        // Remove any disconnected clients from connections list
         if (invalid_client_exists)
             connections_.erase(
                 std::remove(connections_.begin(), connections_.end(), nullptr),
                 connections_.end());
     }
 
-    void update(size_t max_messages = -1, bool waiting = false) {
+
+    // Update there are new messages in the incoming queue,
+    // handle them
+    void update(size_t max_messages = -1, bool waiting = true) {
+        // Optionally, can sleep until new messages arrive
         if (waiting)
-            message_in_.wait();
+            messages_in_.wait();
 
         size_t message_count = 0;
-        while (message_count < max_messages && !message_in_.empty()) {
-            auto msg = message_in_.pop_front();
+        while (message_count < max_messages && !messages_in_.empty()) {
+            auto msg = messages_in_.pop_front();
 
             on_message(msg.remote, msg.msg);
 
@@ -126,6 +145,7 @@ public:
     }
 
 protected:
+    // The following three methods should be implemented by a concrete server
     virtual bool on_client_connect(std::shared_ptr<connection<T>> client) {
         return false;
     }
@@ -135,7 +155,7 @@ protected:
     virtual void on_message(std::shared_ptr<connection<T>> client,
                             message<T> &msg) {}
 
-    tsqueue<owned_message<T>> message_in_;
+    tsqueue<owned_message<T>> messages_in_;
     std::deque<std::shared_ptr<connection<T>>> connections_;
     asio::io_context ctx_;
     std::thread thread_ctx_;

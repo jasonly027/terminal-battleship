@@ -10,7 +10,9 @@
 
 namespace battleship {
 template <typename T> struct message_header {
+    // T will be an enum indicating the kind of message
     T id{};
+    // How many bytes in the body
     uint32_t size = 0;
 };
 
@@ -18,7 +20,7 @@ template <typename T> struct message {
     message_header<T> header{};
     std::vector<uint8_t> body;
 
-    // Return size of payload in bytes
+    // Get how many bytes the body is
     size_t size() const { return body.size(); }
 
     friend std::ostream &operator<<(std::ostream &os, const message<T> &msg) {
@@ -27,6 +29,7 @@ template <typename T> struct message {
         return os;
     }
 
+    // Insert data into body
     template <typename DataType>
     friend message<T> &operator<<(message<T> &msg, const DataType &data) {
         static_assert(std::is_standard_layout<DataType>::value,
@@ -40,6 +43,7 @@ template <typename T> struct message {
         return msg;
     }
 
+    // Extract data from body
     template <typename DataType>
     friend message<T> &operator>>(message<T> &msg, DataType &data) {
         static_assert(std::is_standard_layout<DataType>::value,
