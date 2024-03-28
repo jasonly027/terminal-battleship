@@ -18,24 +18,36 @@ set(BATTLESHIP_NETWORKING_DIR "${CMAKE_SOURCE_DIR}/external/networking")
 
 
 
-add_executable(${PROJECT_NAME}
-    src/client.cpp
-)
+add_executable(${PROJECT_NAME})
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_include_directories(${PROJECT_NAME}
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${ASIO_INCLUDE_DIR}
     ${BATTLESHIP_NETWORKING_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/networking
 )
 
+
+
+# For testing purposes only
+add_executable(Client
+    src/client.cpp
+)
+target_include_directories(Client
+    PRIVATE
+    ${ASIO_INCLUDE_DIR}
+    ${BATTLESHIP_NETWORKING_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 add_executable(Server
     src/server.cpp
 )
 target_include_directories(Server
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${ASIO_INCLUDE_DIR}
     ${BATTLESHIP_NETWORKING_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 
