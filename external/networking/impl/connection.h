@@ -13,6 +13,7 @@
 
 
 namespace battleship {
+template <typename T> struct message_header;
 template <typename T> struct message;
 template <typename T> struct owned_message;
 
