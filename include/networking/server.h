@@ -9,7 +9,7 @@
 namespace battleship {
 class Server : public server_interface<MessageType> {
 public:
-    Server(uint16_t port);
+    explicit Server(uint16_t port);
 
 protected:
     virtual bool

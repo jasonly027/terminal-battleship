@@ -1,4 +1,5 @@
 #include "server.h"
+#include "message_types.h"
 #include <cstdint>
 #include <iostream>
 #include <memory>
@@ -17,5 +18,13 @@ void Server::on_client_disconnect(std::shared_ptr<connection<MessageType>> clien
 }
 
 void Server::on_message(std::shared_ptr<connection<MessageType>> client, message<MessageType> &msg) {
-
+    std::cout << "[SERVER] Got a message\n";
+    switch (msg.header.id) {
+    case MessageType::Ping: {
+        std::cout << "[" << client->id() << "]: Pinged\n";
+        message<MessageType> msg;
+        msg.header.id = MessageType::Ping;
+        message_client(client, msg);
+    }
+    }
 }

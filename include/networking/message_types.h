@@ -6,6 +6,7 @@ namespace battleship {
 enum class MessageType : unsigned char {
     ServerAccept,
     ServerDeny,
+    Ping,
     MessageAll,
     MessageOne,
 };
