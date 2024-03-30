@@ -4,11 +4,13 @@
 
 namespace battleship {
 enum class MessageType : unsigned char {
+    ServerShutdown,
     ServerAccept,
     ServerDeny,
     Ping,
     MessageAll,
     MessageOne,
+    FullLobby,
 };
 }
 

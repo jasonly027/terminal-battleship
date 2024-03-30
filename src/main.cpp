@@ -1,12 +1,8 @@
-#include "client.h"
 #include "game.h"
-#include "impl/message.h"
-#include "message_types.h"
 #include "util.h"
-#include <chrono>
+#include <cstdint>
+#include <cstdlib>
 #include <iostream>
-#include <string>
-#include <thread>
 
 using namespace battleship;
 
@@ -21,33 +17,19 @@ int main() {
 
     switch (lobby_mode) {
     case 1: {
-        game.start_server();
+        std::cout << "Enter Port\n"
+                    "> ";
+        const uint16_t port = util::get_input<uint16_t>();
+
+        if (!game.start_server(port)) {
+            std::cout << "Error starting server...\n";
+            std::exit(0);
+        }
+
+        // game.start_host_client();
     }
     case 2: {
     }
-    }
-
-    Client c;
-    c.connect("localhost", 49494);
-    std::this_thread::sleep_for(std::chrono::seconds(4));
-    while (1) {
-        c.ping();
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-
-
-        if (c.connected()) {
-            std::cout << " I am connected\n";
-            if (!c.incoming().empty()) {
-
-                auto msg = c.incoming().pop_front().msg;
-
-                switch (msg.header.id) {
-                case MessageType::Ping: {
-                    std::cout << "Server pong\n";
-                } break;
-                }
-            }
-        }
     }
 
     return 0;

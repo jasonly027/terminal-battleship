@@ -1,5 +1,6 @@
 #ifndef BATTLESHIP_UTIL_H
 #define BATTLESHIP_UTIL_H
+#include <cstdint>
 #pragma once
 
 #include <iostream>
