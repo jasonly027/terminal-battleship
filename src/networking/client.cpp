@@ -1,10 +1,10 @@
 #include "client.h"
-#include "message_types.h"
+#include "message_factory.h"
 
 using namespace battleship;
 
+Client::Client(std::ostream &log) : client_interface(log)  {}
+
 void Client::ping() {
-    message<MessageType> msg;
-    msg.header.id = MessageType::Ping;
-    send(msg);
+    send(Msg::Ping());
 }
