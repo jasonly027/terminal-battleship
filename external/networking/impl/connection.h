@@ -11,7 +11,6 @@
 #include <memory>
 #include <system_error>
 
-
 namespace battleship {
 template <typename T> struct message_header;
 template <typename T> struct message;
@@ -102,8 +101,8 @@ private:
                         msg_temporary_in_.body.resize(
                             msg_temporary_in_.header.size);
                         read_body();
-                    // Otherwise complete this message transfer
-                    // by moving this message to the incoming queue
+                        // Otherwise complete this message transfer
+                        // by moving this message to the incoming queue
                     } else {
                         add_to_incoming_message_queue();
                     }
@@ -126,8 +125,7 @@ private:
                              if (!ec) {
                                  add_to_incoming_message_queue();
                              } else {
-                                 std::cout << "[" << id_
-                                           << "] Read Body Fail\n"
+                                 std::cout << "[" << id_ << "] Read Body Fail\n"
                                            << ec.message();
                                  socket_.close();
                              }
@@ -145,9 +143,10 @@ private:
                                   // write it as well
                                   if (messages_out_.front().body.size() > 0) {
                                       write_body();
-                                  // Otherwise, complete this message transfer
-                                  // by removing it from the out queue and writing
-                                  // the next message, if it exists.
+                                      // Otherwise, complete this message
+                                      // transfer by removing it from the out
+                                      // queue and writing the next message, if
+                                      // it exists.
                                   } else {
                                       messages_out_.pop_front();
 
@@ -172,8 +171,8 @@ private:
                           [this](std::error_code ec, std::size_t length) {
                               if (!ec) {
                                   // Complete this message transfer
-                                  // by removing it from the out queue and writing
-                                  // the next message, if it exists.
+                                  // by removing it from the out queue and
+                                  // writing the next message, if it exists.
                                   messages_out_.pop_front();
 
                                   if (!messages_out_.empty()) {

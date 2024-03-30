@@ -12,10 +12,10 @@
 #define ASIO_STANDALONE
 #endif
 
-#include "impl/message.h" // IWYU pragma: export
-#include "impl/connection.h" // IWYU pragma: export
-#include "impl/tsqueue.h" // IWYU pragma: export
 #include "impl/client_interface.h" // IWYU pragma: export
+#include "impl/connection.h"       // IWYU pragma: export
+#include "impl/message.h"          // IWYU pragma: export
 #include "impl/server_interface.h" // IWYU pragma: export
+#include "impl/tsqueue.h"          // IWYU pragma: export
 
 #endif

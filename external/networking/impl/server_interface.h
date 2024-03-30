@@ -12,14 +12,17 @@
 #include <exception>
 #include <iostream>
 #include <memory>
+#include <ostream>
+#include <sstream>
 #include <system_error>
 #include <thread>
 
 namespace battleship {
 template <typename T> class server_interface {
 public:
-    server_interface(uint16_t port)
-        : acceptor_(ctx_, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)) {}
+    server_interface(uint16_t port, std::ostream &log = std::cout)
+        : acceptor_(ctx_, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)),
+          log_(log) {}
 
     virtual ~server_interface() { stop(); }
 
@@ -29,11 +32,13 @@ public:
             wait_for_client_connection();
             thread_ctx_ = std::thread([this]() { ctx_.run(); });
         } catch (std::exception &e) {
-            std::cerr << "[SERVER] Exception: " << e.what() << '\n';
+            std::ostringstream oss;
+            oss << "[SERVER] Exception: " << e.what() << '\n';
+            log_ << oss.str();
             return false;
         }
 
-        std::cout << "[SERVER] Started\n";
+        log_ << "[SERVER] Started\n";
         return true;
     }
 
@@ -44,7 +49,7 @@ public:
         if (thread_ctx_.joinable())
             thread_ctx_.join();
 
-        std::cout << "[SERVER] Stopped\n";
+        log_ << "[SERVER] Stopped\n";
     }
 
     // [ASYNC] Wait for a client to connect
@@ -52,8 +57,10 @@ public:
         acceptor_.async_accept([this](std::error_code ec,
                                       asio::ip::tcp::socket socket) {
             if (!ec) {
-                std::cout << "[SERVER] New Connection: "
-                          << socket.remote_endpoint() << '\n';
+                std::ostringstream oss;
+                oss << "[SERVER] New Connection: " << socket.remote_endpoint()
+                    << '\n';
+                log_ << oss.str();
 
                 // Create connection
                 std::shared_ptr<connection<T>> new_conn =
@@ -67,15 +74,19 @@ public:
 
                     connections_.back()->connect_to_client(id_counter_++);
 
-                    std::cout << "[" << connections_.back()->id()
-                              << "] Connection Approved\n";
+                    std::ostringstream oss;
+                    oss << "[" << connections_.back()->id()
+                        << "] Connection Approved\n";
+                    log_ << oss.str();
                 } else {
-                    std::cout << "[-----] Connection Denied\n";
+                    log_ << "[-----] Connection Denied\n";
                 }
 
             } else {
-                std::cout << "[SERVER] New Connection error: " << ec.message()
-                          << '\n';
+                std::ostringstream oss;
+                oss << "[SERVER] New Connection error: " << ec.message()
+                    << '\n';
+                log_ << oss.str();
             }
 
             // Wait for next client to connect
@@ -88,8 +99,8 @@ public:
                         const message<T> &msg) {
         if (client && client->connected()) {
             client->send(msg);
-        // If client had disconnected, remove them from
-        // connections list
+            // If client had disconnected, remove them from
+            // connections list
         } else {
             on_client_disconnect(client);
             client.reset();
@@ -110,8 +121,8 @@ public:
             if (client && client->connected()) {
                 if (client != p_ignore_client)
                     client->send(msg);
-            // If client had disconnected, mark them
-            // for removal from connections list
+                // If client had disconnected, mark them
+                // for removal from connections list
             } else {
                 on_client_disconnect(client);
                 client.reset();
@@ -125,7 +136,6 @@ public:
                 std::remove(connections_.begin(), connections_.end(), nullptr),
                 connections_.end());
     }
-
 
     // Update there are new messages in the incoming queue,
     // handle them
@@ -160,6 +170,7 @@ protected:
     asio::io_context ctx_;
     std::thread thread_ctx_;
     asio::ip::tcp::acceptor acceptor_;
+    std::ostream &log_;
     uint32_t id_counter_ = 10000;
 };
 } // namespace battleship

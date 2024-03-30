@@ -9,13 +9,15 @@
 #include <exception>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <thread>
+
 
 namespace battleship {
 template <typename T> class client_interface {
 public:
-    client_interface() {}
+    client_interface(std::ostream &log = std::cout) : log_(log) {}
 
     virtual ~client_interface() { disconnect(); }
 
@@ -38,7 +40,9 @@ public:
             // Move subsequent connection work to independent thread
             thread_ctx_ = std::thread([this]() { ctx_.run(); });
         } catch (std::exception &e) {
-            std::cerr << "Client Exception: " << e.what() << '\n';
+            std::ostringstream oss;
+            oss << "Client Exception: " << e.what() << '\n';
+            log_ << oss.str();
             return false;
         }
         return true;
@@ -78,6 +82,7 @@ protected:
     asio::io_context ctx_;
     std::thread thread_ctx_;
     std::unique_ptr<connection<T>> connection_;
+    std::ostream &log_;
 
 private:
     tsqueue<owned_message<T>> messages_in_;

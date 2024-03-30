@@ -17,8 +17,15 @@ template <typename T> struct message_header {
 };
 
 template <typename T> struct message {
+    message() = default;
+    message(T kind) {
+        header.id = kind;
+    }
+
     message_header<T> header{};
     std::vector<uint8_t> body;
+
+    T kind() const { return header.id; }
 
     // Get how many bytes the body is
     size_t size() const { return body.size(); }
