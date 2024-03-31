@@ -5,7 +5,6 @@
 #include <iostream>
 #include <string>
 
-
 enum class CustomMsgTypes : uint32_t {
     ServerAccept,
     ServerDeny,

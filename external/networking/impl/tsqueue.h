@@ -1,6 +1,5 @@
 #ifndef BATTLESHIP_TS_QUEUE_H
 #define BATTLESHIP_TS_QUEUE_H
-#pragma once
 
 #include <cstddef>
 #include <deque>
@@ -82,10 +81,8 @@ public:
 
     // Wait until push_back or push_front are called
     void wait() {
-        while (empty()) {
-            std::unique_lock<std::mutex> lock(muxBlocker);
-            blocker.wait(lock);
-        }
+        std::unique_lock<std::mutex> lock(muxBlocker);
+        blocker.wait(lock, [this]() { return !empty(); });
     }
 
 protected:

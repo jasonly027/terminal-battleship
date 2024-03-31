@@ -1,27 +1,30 @@
 #ifndef BATTLESHIP_GAME_H
 #define BATTLESHIP_GAME_H
-#include <cstdint>
-#pragma once
 
+#include "client.h"
+#include <cstdint>
+#include <string>
 #include "server.h"
 #include <memory>
 
 namespace battleship {
 class Game {
 public:
-    ~Game();
+    static constexpr size_t kMaxPlayers = 2;
 
+    void host_game();
+    void join_game();
+    void play();
+private:
     bool start_server(uint16_t port = 49494);
     void stop_server();
 
-    void start_host_client();
-    void stop_host_client();
+    bool start_client(const std::string &host, uint16_t port = 49494);
+    void stop_client();
 
-    void start_join_client();
-    void stop_join_client();
 
-private:
     std::unique_ptr<Server> p_server_;
+    std::unique_ptr<Client> p_client_;
 };
 } // namespace battleship
 

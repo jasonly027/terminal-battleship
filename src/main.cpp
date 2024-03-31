@@ -1,7 +1,5 @@
 #include "game.h"
 #include "util.h"
-#include <cstdint>
-#include <cstdlib>
 #include <iostream>
 
 using namespace battleship;
@@ -16,21 +14,19 @@ int main() {
     int lobby_mode = util::get_lobby_mode();
 
     switch (lobby_mode) {
+    // Hosting
     case 1: {
-        std::cout << "Enter Port\n"
-                    "> ";
-        const uint16_t port = util::get_input<uint16_t>();
-
-        if (!game.start_server(port)) {
-            std::cout << "Error starting server...\n";
-            std::exit(0);
-        }
-
-        // game.start_host_client();
-    }
+        game.host_game();
+    } break;
+    // Joining
     case 2: {
+        game.join_game();
+    } break;
     }
-    }
+
+    std::cout << "\nJoining Lobby...\n\n";
+
+    game.play();
 
     return 0;
 }

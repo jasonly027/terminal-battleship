@@ -1,10 +1,11 @@
 #ifndef BATTLESHIP_UTIL_H
 #define BATTLESHIP_UTIL_H
-#pragma once
 
 #include <iostream>
 #include <sstream>
+#include <streambuf>
 #include <string>
+
 
 namespace battleship {
 namespace util {
@@ -32,6 +33,17 @@ template <typename T> T get_input() {
 }
 
 int get_lobby_mode();
+
+struct NullBuf : std::streambuf {
+    char buffer[100];
+    int overflow(int c) override {
+        setp(buffer, buffer + sizeof buffer);
+        return c;
+    }
+    std::streamsize xsputn(const char *, std::streamsize n) override {
+        return n;
+    }
+};
 } // namespace util
 } // namespace battleship
 

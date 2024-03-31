@@ -1,6 +1,5 @@
 #ifndef BATTLESHIP_CLIENT_INTERFACE_H
 #define BATTLESHIP_CLIENT_INTERFACE_H
-#pragma once
 
 #include "message.h"
 #include "tsqueue.h"
@@ -41,7 +40,7 @@ public:
             thread_ctx_ = std::thread([this]() { ctx_.run(); });
         } catch (std::exception &e) {
             std::ostringstream oss;
-            oss << "Client Exception: " << e.what() << '\n';
+            oss << "[CLIENT] " << e.what() << '\n';
             log_ << oss.str();
             return false;
         }

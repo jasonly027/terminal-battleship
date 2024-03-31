@@ -1,6 +1,5 @@
 #ifndef BATTLESHIP_MESSAGE_H
 #define BATTLESHIP_MESSAGE_H
-#pragma once
 
 #include "connection.h"
 #include <cstdint>

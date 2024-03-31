@@ -1,4 +1,6 @@
 #include "server.h"
+#include "game.h"
+#include "generic_net.h"
 #include "message_factory.h"
 #include "message_types.h"
 #include <cstdint>
@@ -10,7 +12,9 @@
 using namespace battleship;
 
 Server::Server(uint16_t port, std::ostream &log)
-    : server_interface(port, log), running_(false) {}
+    : server_interface(port, log), running_(false), players_(0) {}
+
+Server::~Server() { shutdown(); }
 
 bool Server::run() {
     muxRunning_.lock();
@@ -49,17 +53,34 @@ void Server::shutdown() {
 
 bool Server::on_client_connect(
     std::shared_ptr<connection<MessageType>> client) {
-    log_ << "[SERVER] Client Join\n";
-    if (connections_.size() >= kMaxPlayers) {
-        message_client(client, Msg::FullLobby());
+    if (players_ >= Game::kMaxPlayers) {
+        log_ << "[SERVER] Connection Denied\n";
         return false;
     }
+
+    connections_.push_back(std::move(client));
+    connections_.back()->connect_to_client(id_counter_++);
+
+    ++players_;
+    message_all_client(Msg::LobbyStatus(players_));
+    if (players_ == Game::kMaxPlayers) {
+        message_all_client(Msg::StartingGame());
+    }
+
+    std::ostringstream oss;
+    oss << "[SERVER] Approved [" << connections_.back()->id() << "]\n";
+    log_ << oss.str();
+
     return true;
 }
 
 void Server::on_client_disconnect(
     std::shared_ptr<connection<MessageType>> client) {
-    log_ << "[SERVER] Client Left\n";
+    --players_;
+
+    std::ostringstream oss;
+    oss << "[SERVER] [" << client->id() << "] disconnected\n";
+    log_ << oss.str();
 }
 
 void Server::on_message(std::shared_ptr<connection<MessageType>> client,
@@ -71,9 +92,17 @@ void Server::on_message(std::shared_ptr<connection<MessageType>> client,
         oss << "[SERVER] [" << client->id() << "] Pinged\n";
         log_ << oss.str();
         message_client(client, Msg::Ping());
-    }
+    } break;
     case MessageType::ServerShutdown: {
         stop();
-    }
+    } break;
+    case MessageType::ServerAccept:
+    case MessageType::ServerDeny:
+    case MessageType::MessageAll:
+    case MessageType::MessageOne:
+    case MessageType::FullLobby:
+    case MessageType::LobbyStatus:
+    case MessageType::StartingGame:
+        break;
     }
 }

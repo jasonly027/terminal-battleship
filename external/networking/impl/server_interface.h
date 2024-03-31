@@ -1,6 +1,5 @@
 #ifndef BATTLESHIP_SERVER_INTERFACE_H
 #define BATTLESHIP_SERVER_INTERFACE_H
-#pragma once
 
 #include "connection.h"
 #include "message.h"
@@ -68,27 +67,13 @@ public:
                         connection<T>::owner::server, ctx_, std::move(socket),
                         messages_in_);
 
-                // Possible validation point
-                if (on_client_connect(new_conn)) {
-                    connections_.push_back(std::move(new_conn));
-
-                    connections_.back()->connect_to_client(id_counter_++);
-
-                    std::ostringstream oss;
-                    oss << "[" << connections_.back()->id()
-                        << "] Connection Approved\n";
-                    log_ << oss.str();
-                } else {
-                    log_ << "[-----] Connection Denied\n";
-                }
-
+                on_client_connect(new_conn);
             } else {
                 std::ostringstream oss;
                 oss << "[SERVER] New Connection error: " << ec.message()
                     << '\n';
                 log_ << oss.str();
             }
-
             // Wait for next client to connect
             wait_for_client_connection();
         });

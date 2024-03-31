@@ -1,15 +1,16 @@
 #ifndef BATTLESHIP_CONNECTION_H
 #define BATTLESHIP_CONNECTION_H
-#pragma once
 
 #include "message.h"
 #include "tsqueue.h"
 #include <asio.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <system_error>
+
 
 namespace battleship {
 template <typename T> struct message_header;
@@ -54,6 +55,9 @@ public:
                     if (!ec) {
                         // Prepare client to read an incoming header
                         read_header();
+                    } else {
+                        std::cout << "[ERROR] Bad endpoint\n";
+                        std::exit(-1);
                     }
                 });
         }

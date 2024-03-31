@@ -34,7 +34,7 @@ protected:
     virtual void
     on_message(std::shared_ptr<battleship::connection<CustomMsgTypes>> client,
                battleship::message<CustomMsgTypes> &msg) override {
-        switch (msg.header.id) {
+        switch (msg.kind()) {
         case CustomMsgTypes::ServerPing: {
             std::cout << "[" << client->id() << "]: Server Ping\n";
             int str;
