@@ -4,10 +4,14 @@ import java.util.ArrayList;
 
 public class Ships {
     private int hp;
-    private ArrayList<ArrayList<Integer>> location = new ArrayList<ArrayList<Integer>>();
+    private ArrayList<ArrayList<Integer>> location = new ArrayList<>();
+    private ArrayList<Boolean> sectionsHit = new ArrayList<>();
     public Ships(int hp){
         this.hp = hp;
-
+        for(int i = 0; i < this.hp; i++){
+            //initialize all the sections list as false to represent that the sections haven't been hit
+            sectionsHit.add(false);
+        }
     }
 
     //places a ship at a location either vertically or horizontally and stores it in the location array list
@@ -39,6 +43,9 @@ public class Ships {
     }
     public boolean checkPlacement(int x, int y, boolean isHorizontal, Map map){
         //makes sure that the placement is in bounds
+        if(x < 0 || y < 0){
+            return false;
+        }
         if(isHorizontal){
             if(this.hp + x > 10){
                 return false;
@@ -50,7 +57,7 @@ public class Ships {
             }
         }
         //make sure that there isn't already a ship there
-        if(isHorizontal){
+        if(!isHorizontal){
             for(int i = 0; i <this.hp; i++ ){
                 if(map.getMap()[y+i][x] != 0){
                     return false;
@@ -68,6 +75,10 @@ public class Ships {
     }
     public int getHp(){
         return this.hp;
+    }
+
+    public ArrayList<Boolean> getSectionsHit(){
+        return this.sectionsHit;
     }
     public ArrayList<ArrayList<Integer>> getLocation(){
         return this.location;
