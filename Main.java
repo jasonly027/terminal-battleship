@@ -34,11 +34,11 @@ public class Main {
         playerFleet.add(destroyer);
 
         ArrayList<Ships> opponentFleet = new ArrayList<>();
-        playerFleet.add(opponentCarrier);
-        playerFleet.add(opponentBattleship);
-        playerFleet.add(opponentCruiser);
-        playerFleet.add(opponentSubmarine);
-        playerFleet.add(opponentDestroyer);
+        opponentFleet.add(opponentCarrier);
+        opponentFleet.add(opponentBattleship);
+        opponentFleet.add(opponentCruiser);
+        opponentFleet.add(opponentSubmarine);
+        opponentFleet.add(opponentDestroyer);
 
         System.out.println("Battle ship has a 10 x 10 board size.");
         System.out.println("Ship maps");
@@ -161,7 +161,7 @@ public class Main {
                 return false;
             }
             else {
-                System.out.println("Invalid direction argument, defaulting to horizontal");
+                System.out.println("Invalid direction argument.");
                 scnr.nextLine();
             }
         }
@@ -212,6 +212,7 @@ public class Main {
     public static void placeShipInput(Ships ship,Map map, Scanner scnr){
         //ask for user ship placement
         while (true) {
+            //
             int xPlacement = getXPlacementInput(ship, scnr);
             int yPlacement = getYPlacementInput(ship, scnr);
             boolean isHorizontal = getPlacementDirection(scnr);
@@ -238,7 +239,6 @@ public class Main {
                 opponentMap.updateMap(x, y, 0);
                 playerAttackMap.updateAttackMap(x, y, 0);
                 isRepeat = false;
-                return false;
             }
             else if(opponentMap.checkAttack(x, y) == 1){
                 opponentMap.updateMap(x, y, 1);
@@ -263,7 +263,6 @@ public class Main {
                     }
                 }
                 playerAttackMap.updateAttackMap(x, y, 1);
-                isRepeat = false;
                 return allShipsDestroyed;
             }
             //otherwise the is attack is a repeat
